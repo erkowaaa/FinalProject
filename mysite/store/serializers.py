@@ -4,15 +4,24 @@ from .models import *
 from django.contrib.auth.models import User
 
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['first_name', 'last_name', 'age', 'phone_number', 'status']
+
 class UserSerializer(serializers.ModelSerializer):
+    profile = UserProfileSerializer()
+
     class Meta:
         model = User
-        fields = ('username', 'email', 'password')
+        fields = ('username', 'email', 'password', 'profile')
         extra_kwargs = {'password': {'write_only': True}}
 
-        def create(self, validates_date):
-            user = User.objects.create_user(**validates_date)
-            return user
+    def create(self, validates_date):
+        user_data = validates_date.pop('profile')
+        user = User.objects.create_user(**validates_date)
+        UserProfile.objects.create(user=user, **user_data)
+        return user
 
 
 class LoginSerializer(serializers.Serializer):
@@ -25,11 +34,6 @@ class LoginSerializer(serializers.Serializer):
             return user
         raise serializers.ValidationError("Неверные учетные данные")
 
-
-class UserProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserProfile
-        fields = '__all__'
 
 
 class CategorySerializer(serializers.ModelSerializer):

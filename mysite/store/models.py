@@ -1,12 +1,13 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     first_name = models.CharField(max_length=32)
     last_name = models.CharField(max_length=32)
     age = models.PositiveIntegerField(default=0)
     date_registered = models.DateField(auto_now=True)
-    email = models.EmailField()
     phone_number = models.IntegerField()
     STATUS_CHOICES = (
         ('gold', 'Gold'),
