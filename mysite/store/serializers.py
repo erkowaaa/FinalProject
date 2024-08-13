@@ -4,24 +4,21 @@ from .models import *
 from django.contrib.auth.models import User
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ['first_name', 'last_name', 'age', 'phone_number', 'status']
-
-class UserSerializer(serializers.ModelSerializer):
-    profile = UserProfileSerializer()
-
-    class Meta:
-        model = User
-        fields = ('username', 'email', 'password', 'profile')
+        fields = ['id', 'username', 'email', 'password', 'first_name', 'last_name', 'age', 'phone_number', 'status']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validates_date):
-        user_data = validates_date.pop('profile')
-        user = User.objects.create_user(**validates_date)
-        UserProfile.objects.create(user=user, **user_data)
+        user = UserProfile.objects.create_user(**validates_date)
         return user
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['username', 'email', 'password']
 
 
 class LoginSerializer(serializers.Serializer):
@@ -33,7 +30,6 @@ class LoginSerializer(serializers.Serializer):
         if user and user.is_active:
             return user
         raise serializers.ValidationError("Неверные учетные данные")
-
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -60,7 +56,6 @@ class RatingSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='user.first_name')
     last_name = serializers.CharField(source='user.last_name')
 
-
     class Meta:
         model = Rating
         fields = ['first_name', 'last_name']
@@ -82,11 +77,12 @@ class ProductSerializer(serializers.ModelSerializer):
     product = ProductPhotosSerializer(many=True, read_only=True)
     average_rating = serializers.SerializerMethodField()
     date = serializers.DateField(format='%d-%m-%Y')
+    owner = UserProfileSerializer()
 
     class Meta:
         model = Product
-        fields = ['product_name', 'description', 'category', 'price', 'product',
-                  'product_video', 'active', 'date', 'average_rating', 'ratings', 'reviews']
+        fields = ['id', 'product_name', 'description', 'category', 'price', 'product',
+                  'product_video', 'active', 'date', 'average_rating', 'ratings', 'reviews', 'owner']
 
     def get_average_rating(self, obj):
         return obj.get_average_rating()

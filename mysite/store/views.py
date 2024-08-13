@@ -8,6 +8,7 @@ from .serializers import *
 from django_filters.rest_framework import DjangoFilterBackend
 from .filter import ProductFilter
 from rest_framework.filters import SearchFilter
+from .permissions import OwnerReadOnly
 
 
 class RegisterView(generics.CreateAPIView):
@@ -71,7 +72,10 @@ class ProductViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = ProductFilter
     search_fields = ['product_name']
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [OwnerReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
 
 class ProductPhotosViewSet(viewsets.ModelViewSet):

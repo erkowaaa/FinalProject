@@ -1,14 +1,13 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 
 
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    first_name = models.CharField(max_length=32)
-    last_name = models.CharField(max_length=32)
-    age = models.PositiveIntegerField(default=0)
-    date_registered = models.DateField(auto_now=True)
-    phone_number = models.IntegerField()
+class UserProfile(AbstractUser):
+    first_name = models.CharField(max_length=32, null=True, blank=True)
+    last_name = models.CharField(max_length=32, null=True, blank=True)
+    age = models.PositiveIntegerField(default=0, null=True, blank=True)
+    date_registered = models.DateField(auto_now=True, null=True, blank=True)
+    phone_number = models.IntegerField(null=True, blank=True)
     STATUS_CHOICES = (
         ('gold', 'Gold'),
         ('silver', 'Silver'),
@@ -16,7 +15,7 @@ class UserProfile(models.Model):
         ('simple', 'Simple'),
     )
 
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='simple')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='simple', null=True, blank=True)
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
@@ -37,6 +36,7 @@ class Product(models.Model):
     date = models.DateField(auto_now=True)
     active = models.BooleanField(default=True)
     product_video = models.FileField(verbose_name='Видео', null=True, blank=True)
+    owner = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.product_name
