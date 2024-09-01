@@ -50,7 +50,7 @@ class Product(models.Model):
 
 class ProductPhotos(models.Model):
     product_photo = models.ForeignKey(Product, related_name='product', on_delete=models.CASCADE)
-    image = models. ImageField(upload_to='product_images/')
+    image = models.ImageField(upload_to='product_images/')
 
 
 class Rating(models.Model):
@@ -71,4 +71,24 @@ class Review(models.Model):
 
     def __str__(self):
         return f'{self.author} - {self.product}'
+
+
+class Cart(models.Model):
+    user = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='cart')
+    created_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.user}'
+
+    def get_total_price(self):
+        return sum(item.get_total_price() for item in self.items.all())
+
+
+class CartItem(models.Model):
+    cart = models.ForeignKey(Cart, related_name='items',  on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveSmallIntegerField(default=1)
+
+    def get_total_price(self):
+        return self.product.price * self.quantity
 
